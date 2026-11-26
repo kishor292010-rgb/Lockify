@@ -265,7 +265,16 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
                     Text("Length: $generatorLength")
                     Slider(value = generatorLength.toFloat(), onValueChange = { generatorLength = it.toInt() }, valueRange = 8f..64f, steps = 55)
                     Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(includeSymbols, { includeSymbols = it }); Text("Include symbols") }
-                    if (generated.isNotBlank()) Text(generated, color = Accent)
+                    if (generated.isNotBlank()) {
+                        Text(generated, color = Accent)
+                        Button(onClick = {
+                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Generated password", generated))
+                            message = "Password copied to clipboard."
+                        }) {
+                            Text("Copy password")
+                        }
+                    }
                 } },
                 confirmButton = { TextButton(onClick = {
                     val chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789" + if (includeSymbols) "!@#$%^&*()-_=+?" else ""
