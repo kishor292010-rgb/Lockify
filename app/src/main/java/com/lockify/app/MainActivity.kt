@@ -1,5 +1,6 @@
 package com.lockify.app
 
+import kotlin.random.Random
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -73,7 +74,8 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
     var includeSymbols by remember { mutableStateOf(true) }
     var showSettings by remember { mutableStateOf(false) }
     var backupPass by remember { mutableStateOf("") }
-    var backupMode by remember { mutableStateOf("export") }\n    var externalPickerActive by remember { mutableStateOf(false) }
+    var backupMode by remember { mutableStateOf("export") }
+    var externalPickerActive by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun refresh() { logins = vault.entries() }
@@ -140,7 +142,8 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
         Surface(Modifier.fillMaxSize(), color = Ink) {
             if (!unlocked) {
                 Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Image(painterResource(R.drawable.lockify_logo), contentDescription = "Lockify logo", modifier = Modifier.size(64.dp), contentScale = ContentScale.Fit)\n                    Text("LOCKIFY", fontSize = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+                    Image(painterResource(R.drawable.lockify_logo), contentDescription = "Lockify logo", modifier = Modifier.size(64.dp), contentScale = ContentScale.Fit)
+                    Text("LOCKIFY", fontSize = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
                     Text(if (configured) "Unlock your private vault" else "Create your private vault", color = Muted)
                     Spacer(Modifier.height(24.dp))
                     OutlinedTextField(pin, { if (it.length <= 12 && it.all(Char::isDigit)) pin = it }, label = { Text("6–12 digit PIN") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
@@ -273,7 +276,8 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
             if (showSettings && unlocked) AlertDialog(onDismissRequest = { showSettings = false },
                 title = { Text("Security & backup") },
                 text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Automatic lock: immediately when the app leaves the foreground.", color = Muted)\n                    Text("Made by Shadowking", color = Accent, fontWeight = FontWeight.SemiBold)
+                    Text("Automatic lock: immediately when the app leaves the foreground.", color = Muted)
+                    Text("Made by Shadowking", color = Accent, fontWeight = FontWeight.SemiBold)
                     if (vault.isBiometricEnabled()) {
                         Text("Fingerprint unlock is enabled.")
                         TextButton(onClick = { vault.disableBiometric(); message = "Fingerprint unlock disabled." }) { Text("Disable fingerprint") }
