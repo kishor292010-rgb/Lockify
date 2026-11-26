@@ -9,6 +9,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.Image
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
@@ -142,7 +149,7 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
         Surface(Modifier.fillMaxSize(), color = Ink) {
             if (!unlocked) {
                 Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Image(painterResource(R.drawable.lockify_logo), contentDescription = "Lockify logo", modifier = Modifier.size(64.dp), contentScale = ContentScale.Fit)
+                    AnimatedLockifyRobot(Modifier.size(116.dp))
                     Text("LOCKIFY", fontSize = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
                     Text(if (configured) "Unlock your private vault" else "Create your private vault", color = Muted)
                     Spacer(Modifier.height(24.dp))
@@ -176,7 +183,7 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
                 Column(Modifier.fillMaxSize().padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) { Image(painterResource(R.drawable.lockify_logo), contentDescription = "Lockify logo", modifier = Modifier.size(36.dp)); Spacer(Modifier.width(8.dp)); Text("LOCKIFY", color = Accent, fontWeight = FontWeight.Bold, letterSpacing = 2.sp) }
+                            Row(verticalAlignment = Alignment.CenterVertically) { AnimatedLockifyRobot(Modifier.size(44.dp)); Spacer(Modifier.width(8.dp)); Text("LOCKIFY", color = Accent, fontWeight = FontWeight.Bold, letterSpacing = 2.sp) }
                             Text("Your encrypted vault", fontSize = 23.sp, fontWeight = FontWeight.Bold)
                         }
                         TextButton(onClick = { showSettings = true }) { Text("Settings") }
@@ -213,8 +220,20 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
                         items(filtered, key = { it.id }) { item ->
                             Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(14.dp)) {
                                 Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                                    var passwordVisible by remember(item.id) { mutableStateOf(false) }
                                     Text(item.title, fontWeight = FontWeight.SemiBold)
                                     Text("${item.username} • ${item.category}", color = Muted, fontSize = 12.sp)
+                                    if (passwordVisible) Text("Password: ${item.password}", color = Accent)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                                            Text(if (passwordVisible) "Hide password" else "Show password")
+                                        }
+                                        TextButton(onClick = {
+                                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Saved password", item.password))
+                                            message = "Password copied to clipboard."
+                                        }) { Text("Copy password") }
+                                    }
                                     Row {
                                         TextButton(onClick = { editing = item; adding = true }) { Text("Edit") }
                                         TextButton(onClick = {
@@ -310,4 +329,38 @@ private fun LockifyApp(vault: SecureVault, activity: FragmentActivity) {
             }
         }
     }
+}
+
+
+@Composable
+private fun AnimatedLockifyRobot(modifier: Modifier = Modifier) {
+    val motion = rememberInfiniteTransition(label = "lockify-robot")
+    val tilt = motion.animateFloat(
+        initialValue = -3f,
+        targetValue = 3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "robot-tilt"
+    )
+    val pulse = motion.animateFloat(
+        initialValue = 0.97f,
+        targetValue = 1.03f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "robot-pulse"
+    )
+    Image(
+        painter = painterResource(R.drawable.lockify_robot),
+        contentDescription = "Lockify robot mascot",
+        contentScale = ContentScale.Fit,
+        modifier = modifier.graphicsLayer {
+            rotationZ = tilt.value
+            scaleX = pulse.value
+            scaleY = pulse.value
+        }
+    )
 }
